@@ -124,11 +124,11 @@
                 class="button is-dark is-fullwidth"
                 style="margin-top:5px"
                 @click="
-                  generarPago(checked.status)
+                  actualizarPrestamo(checked.status)
                   active = 0
                 "
               >
-                Agregar Prestamo
+                Agregar Pago
               </button>
             </div>
           </form>
@@ -190,25 +190,15 @@ export default {
     generarPago(a) {
       console.log(a)
     },
-    async generarPrestamo() {
+    async actualizarPrestamo() {
       this.error = ''
       try {
         const authorization = 'Authorization'
         this.$axios.defaults.headers.common[
           authorization
         ] = window.localStorage.getItem('auth._token.local')
-        await this.$axios.post('pagos', {
-          client: this.user[0].id,
-          fechaipago: this.fipago,
-          monto: this.monto.toString(),
-          intereses: this.vipagar.toString(),
-          totalpagar: this.totalpagar.toString(),
-          ncuotas: this.ncuotas,
-          vcuotas: this.vcuota.toString(),
-          fechaspagos: this.fechaspagos,
-          eliminar: false,
-          ppagos: this.selectedpp.toString(),
-          pagoarr: []
+        await this.$axios.put('prestamos', {
+          fechaipago: this.fipago
         })
         this.success = 'Prestamo registrado con exito.'
         window.location.reload(true)

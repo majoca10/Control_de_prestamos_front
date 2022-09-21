@@ -63,7 +63,7 @@
                   </div>
                 </div>
                 <div>
-                  <label class="label">Iteres</label>
+                  <label class="label">Interes</label>
                   <div class="control is-3">
                     <input
                       v-model="interes"
@@ -184,18 +184,21 @@
               <table class="table">
                 <h2 class="label">Fechas de pago</h2>
                 <tr v-for="(fechaspago, index) in fechaspagos" :key="index">
-                  <th>
-                    Fecha de pago
+                  <th>Cuota {{ index + 1 }}</th>
+                  <th style="font-weight: 100;">
+                    {{ $moment(fechaspagos[index].fecha).format('MM DD YYYY') }}
                   </th>
                   <th style="font-weight: 100;">
-                    {{
-                      $moment(fechaspago[index].fecha).format('MMMM-DD-YYYY')
-                    }}
+                    Pago
+                    <label class="switch" style="margin-inline: auto;">
+                      <input
+                        type="checkbox"
+                        v-model="fechaspagos[index].status"
+                      />
+                      <span class="slider round"></span>
+                    </label>
                   </th>
-                  <th>
-                    Cuota
-                  </th>
-                  <th style="font-weight: 100;">{{ index + 1 }}</th>
+                  <th style="font-weight: 100;"></th>
                 </tr>
               </table>
             </div>
@@ -355,23 +358,51 @@ export default {
       if (diashoras === 30) {
         this.fpago = 'Mensual'
       }
-      const diaEnMilisegundos = 1000 * 60 * 60 * 24 * selectedpp
+      const diaEnMilisegundos =
+        1000 * 60 * 60 * 24 + 1000 * 60 * 60 * 24 * selectedpp
       const fechas = []
-      this.fechaspagos = fechas
       for (let index = 0; index < ncuotas; index++) {
         // eslint-disable-next-line
         let cambiarfecha = null
         if (fechas.length >= 1) {
-          cambiarfecha = new Date(fechas[fechas.length - 1]).getTime()
+          const index = fechas.length
+          const position = index - 1
+          const fechaarr = fechas[position].fecha
+          cambiarfecha = new Date(fechaarr)
         } else {
-          cambiarfecha = new Date(fipago.split('-')).getTime()
+          // eslint-disable-next-line
+          cambiarfecha = new Date(fipago)
+          cambiarfecha.setHours(24)
         }
-        const newconverfecha = cambiarfecha + diaEnMilisegundos
+        const newconverfecha = new Date(cambiarfecha)
+        const year = newconverfecha.getFullYear()
+        const month = newconverfecha.getMonth()
+        // eslint-disable-next-line
+        const lastday = new Date(year, month +1, 0).getDate()
+        if (lastday === 31) {
+          // eslint-disable-next-line
+          const diadepago = newconverfecha.setDate(
+            new Date(cambiarfecha).getDate() + selectedpp + 1
+          )
+          const newdiapago = new Date(newconverfecha).getDate()
+          console.log(newdiapago)
+          if (newdiapago === 16) {
+            // eslint-disable-next-line
+            const diadepago = newconverfecha.setDate(
+              new Date(cambiarfecha).getDate() + selectedpp - 1
+            )
+          }
+        } else {
+          newconverfecha.setDate(new Date(cambiarfecha).getDate() + selectedpp)
+        }
+        console.log(selectedpp)
         fechas.push({
           fecha: new Date(newconverfecha),
-          status: false
+          status: false,
+          file: ''
         })
       }
+      this.fechaspagos = fechas
       this.vergenerarprestamo = true
       console.log('dias', diasdepago)
       console.log('monto', parseInt(monto))
@@ -382,8 +413,70 @@ export default {
       console.log('numero de cuotas', ncuotas)
       console.log('valor de la cuota', valorcuota)
       console.log('date', diashoras)
-      console.log(this.fechaspagos[0].fecha)
+      console.log(this.fechaspagos, diaEnMilisegundos)
+      console.log('fecha inicial', fipago)
     }
   }
 }
 </script>
+<style>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: 04s;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196f3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
